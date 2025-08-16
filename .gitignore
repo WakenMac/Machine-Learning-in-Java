@@ -22,3 +22,6 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Book on Machine Learning 
+An Introduction to Statistical Learning - Gareth James.pdf

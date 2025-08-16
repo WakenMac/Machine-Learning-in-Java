@@ -140,6 +140,11 @@ public class Series<DataType>{
         return this.size;
     }
 
+    /**
+     * 
+     * @param index Index of where the data is located
+     * @return A Series containing the singular data, type, and name of the series
+     */
     public Series<DataType> getIndex(int index){
         int resolvedIndex = index;
 
@@ -154,6 +159,7 @@ public class Series<DataType>{
         return new Series<>(result, this.type, this.name);
     }
 
+    // TODO: Implement this method
     public DataType[] getIndex(int startIndex, int endIndex){
         return null;
     }

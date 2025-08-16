@@ -3,6 +3,10 @@ package DataFrame;
 import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDate;
+import java.util.Hashtable;
+
+import MachineLearningExceptions.*;
+
 import java.io.BufferedReader;
 
 /**
@@ -31,17 +35,14 @@ public class DataFrame {
     private Series[] columns;
     private int columnSize;
     private int rowSize;
-    private String filePath;
 
     public static void main(String [] args){
-        try {
-            // DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
-            DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
-            System.out.println(df.getHead());
-            System.out.println(df.getInfo());
-        } catch (Exception e){
-            System.err.println(e);
-        }
+        // DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
+        DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
+        System.out.println(df.getHead());
+        System.out.println(df.getInfo());
+        System.out.println(df.select(new String[] {"Id", "SepalLengthCm", "PetalLengthCm", "Species"})
+                                .getHead());
     }
 
     /**
@@ -52,7 +53,6 @@ public class DataFrame {
         int [] shape = df.getShape();
         if (shape[0] < 1 || shape[1] < 1)
             throw new IllegalArgumentException("Empty DataFrame was used.");
-        this.filePath = df.filePath;
         this.rowSize = shape[0];
         this.columnSize = shape[1];
         this.columns = duplicateColumns(df.getColumns());
@@ -61,15 +61,28 @@ public class DataFrame {
     public DataFrame(String pathToFile){
         try {
             File file = new File(pathToFile);
-            setFilePath(pathToFile);
             prepareDimensions(file);
             prepareFileData(file);
         } catch (Exception e){
             System.err.println(e);
-            setFilePath(null);
             setColumnSize(0);
             setRowSize(0);
         }
+    }
+
+    private DataFrame(Series<?>[] seriesArray){
+        if (seriesArray == null)
+            throw new NullPointerException("Cannot access Series as \"seriesArray\" is null.");
+        
+        int rowSize = seriesArray[0].getSize();
+        for (int i = 1; i < seriesArray.length; i++){
+            if (seriesArray[i].getSize() != rowSize)
+                throw new IllegalArgumentException("Invalid Series \"" + seriesArray[i].getName() + "\" as it has " + seriesArray[i].getSize() + " rows than the supposed " + rowSize + ".");
+        }
+
+        this.rowSize = seriesArray[0].getSize();
+        this.columnSize = seriesArray.length;
+        this.columns = duplicateColumns(seriesArray);
     }
 
 // ===================================================================================================================================
@@ -119,6 +132,7 @@ public class DataFrame {
      * This method assumes that the file is not null and is existing.
      * @param file
      */
+    @SuppressWarnings("unchecked")
     private void prepareFileData(File file){
         try {
             // PART 1: Prepares the file readers
@@ -228,25 +242,9 @@ public class DataFrame {
 
         return "String";
     }
-
-
+    
 // ===================================================================================================================================
-//  SETTERS
-
-    private void setRowSize(int rowSize){
-        this.rowSize = rowSize;
-    }
-
-    private void setColumnSize(int columnSize){
-        this.columnSize = columnSize;
-    }
-
-    private void setFilePath(String filePath){
-        this.filePath = filePath;
-    }
-
-// ===================================================================================================================================
-//  SUBSETTING
+//  SERIES DUPLICATION
 
     /**
      * Creates a deep copy of a DataFrame
@@ -264,11 +262,62 @@ public class DataFrame {
     }
 
 // ===================================================================================================================================
-//  GETTERS
-    
-    private String getFilePath(){
-        return this.filePath;
+//  SETTERS
+
+    private void setRowSize(int rowSize){
+        this.rowSize = rowSize;
     }
+
+    private void setColumnSize(int columnSize){
+        this.columnSize = columnSize;
+    }
+
+// ===================================================================================================================================
+//  SUBSETTING
+
+    /**
+     * Selects the columns from a DataFrame
+     * 
+     * @param colNames List of column names to be selected
+     * @return A new DataFrame composing of only the selected columns. 
+     *         Note that the order of the Strings affect the column order.
+     */
+    public DataFrame select(String [] colNames){
+        Series<?>[] seriesArray = new Series[colNames.length];
+
+        // Adds the DataFrames columns to a HashSet
+        Hashtable<String, Series<?>> set = new Hashtable<>();
+        for (int i = 0; i < this.columnSize; i++)
+            set.put(this.columns[i].getName(), this.columns[i]);
+        
+        // Iterate over the HashSet if the columns are found there
+        for (int i = 0; i < colNames.length; i++){
+            Series<?> result = set.getOrDefault(colNames[i], null);
+            if (result == null)
+                throw new UnknownColumnException("DataFrame doesn't contain column " + colNames[i]);
+            seriesArray[i] = new Series<>(result);
+        }
+        
+        // Instantiate and return the new DataFrame
+        return new DataFrame(seriesArray);
+    }
+
+    // TODO: Implement this method
+    public Series<?> selectIndex(int row, int column){
+        // Check if this index exists
+        // Get the series based on the column then run getIndex.
+
+        return null;    
+    }
+
+    // TODO: Implement this method
+    public Series<?>[] selectIndex(int startRow, int endRow, int startCol, int endCol){
+
+        return null;
+    }
+
+// ===================================================================================================================================
+//  GETTERS
 
     private Series<?>[] getColumns(){
         return duplicateColumns(this.columns);
@@ -345,6 +394,20 @@ public class DataFrame {
         }
         return tempString;
     }
+
+// ===================================================================================================================================
+//  MACHINE LEARNING RELATED
+
+    // TODO: Implement this method
+    public DataFrame split(float partition){
+        
+        return null;
+    }
+
+
+
+// ===================================================================================================================================
+//  PRINT FORMATTING
 
     @Override
     public String toString(){
