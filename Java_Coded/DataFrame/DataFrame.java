@@ -303,15 +303,25 @@ public class DataFrame {
     }
 
     // TODO: Implement this method
-    public Series<?> selectIndex(int row, int column){
-        // Check if this index exists
+    public DataFrame loc(String startCol, String endCol){
+        // Check if these columnsExists given their order
         // Get the series based on the column then run getIndex.
+        // Returns a new DataFrame
 
         return null;    
     }
 
     // TODO: Implement this method
-    public Series<?>[] selectIndex(int startRow, int endRow, int startCol, int endCol){
+    public DataFrame iloc(int row, int column){
+        // Check if this index exists
+        // Get the series based on the column then run getIndex.
+        // Returns a new DataFrame
+
+        return null;    
+    }
+
+    // TODO: Implement this method
+    public DataFrame iloc(int startRow, int endRow, int startCol, int endCol){
 
         return null;
     }

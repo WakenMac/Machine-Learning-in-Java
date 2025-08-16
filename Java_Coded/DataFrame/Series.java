@@ -68,6 +68,7 @@ public class Series<DataType>{
 
     }
 
+    @SuppressWarnings("unchecked")
     private DataType[] createArray(int size){
         if (size > 0)
             return (DataType[]) Array.newInstance(list.getClass().getComponentType(), size);
@@ -124,6 +125,7 @@ public class Series<DataType>{
 // ===================================================================================================================================
 //  GETTERS
 
+    @SuppressWarnings("unchecked")
     private DataType[] getList(){
         return (DataType[]) Arrays.copyOf(this.list, list.length);
     }
@@ -163,9 +165,4 @@ public class Series<DataType>{
     public DataType[] getIndex(int startIndex, int endIndex){
         return null;
     }
-
-    private void incrementSize(){
-        this.size++;
-    }
-
 }
