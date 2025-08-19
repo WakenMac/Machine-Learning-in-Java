@@ -54,7 +54,7 @@ public class DataFrame {
         // System.out.println(df.select("Id", "SepalLengthCm", "PetalLengthCm", "Species")
         //                         .getHead());
         // System.out.println(df.loc("Id", "SepalLengthCm").getHead());
-        System.out.println(df.iloc(0, 3, 0, 2).getHead());
+        System.out.println(df.iloc(0, 0, 3, 2).getHead());
     }
 
     /**
@@ -330,6 +330,10 @@ public class DataFrame {
 // ===================================================================================================================================
 //  SUBSETTING
 
+    public Series<?> select(String colName){
+        return select(new String[] {colName}).getColumns()[0];
+    }
+
     /**
      * Selects the columns from a DataFrame
      * 
@@ -349,7 +353,7 @@ public class DataFrame {
         for (int i = 0; i < colNames.length; i++){
             Series<?> result = set.getOrDefault(colNames[i], null);
             if (result == null)
-                throw new UnknownColumnException("The DataFrame doesn't contain the column: " + colNames[i]);
+                throw new UnknownColumnException("The column \"" + colNames[i] + "\" doesn't exist in the DataFrame.");
             seriesArray[i] = new Series<>(result);
         }
         
@@ -409,7 +413,7 @@ public class DataFrame {
      * @param endCol
      * @return
      */
-    public DataFrame iloc(int startRow, int endRow, int startCol, int endCol){
+    public DataFrame iloc(int startRow, int startCol, int endRow, int endCol){
         if (startCol > endCol)
             throw new IllegalArgumentException("The parameter \"startCol\" must be less than or equal to the \"endCol\" parameter");
         else if (startRow > endRow)
@@ -513,12 +517,21 @@ public class DataFrame {
 
         tempString += "Dimension : [ " + this.rowSize + ", " + this.columnSize + " ] \n\nColumns: \n";
         for (int i = 0; i < this.columnSize; i++){
-            tempString += "   " + this.columns[i].getName() + " - " + this.columns[i].getType();
+            tempString += "   " + this.columns[i].getName() + " - " + this.columns[i].getIndex_DataType(0).getClass();
 
             if (i < this.columnSize - 1)
                 tempString += "\n";
         }
         return tempString;
+    }
+
+    public String getDataType(String colName){
+        for (int i = 0; i < this.columns.length; i++){
+            if (this.columns[i].getName().equals(colName))
+                return this.columns[i].getIndex_DataType(0).getClass().toString();
+        }
+
+        throw new UnknownColumnException("The column \"" + colName + "\" doesn't exist in the DataFrame.");
     }
 
     // TODO: Implement this method
@@ -539,8 +552,9 @@ public class DataFrame {
     // TODO: Implement this method
     /**
      * Splits the DataFrame for training and testing.
-     * To get the partitioned DaatFrame, call getTraining() and getTesting() methods respectively.
+     * 
      * @param partition Percentage of data used for the testing data
+     * @return A two element array containing the DataFrame for testing and training respectively
      */
     public DataFrame[] split(double partition){
         if (partition > 1)
@@ -549,8 +563,6 @@ public class DataFrame {
         // Get the number of rows for partitioning / training
         int trainingRow = (int) Math.floor(partition * this.rowSize);
         Random dice = (this.seed != -1)? new Random(this.seed) : new Random();
-
-        System.out.println(this.rowSize + " " + trainingRow + " " + (this.rowSize - trainingRow));
 
         int [] indices = new int[this.rowSize];
         for (int i = 0; i < this.rowSize; i++)
@@ -587,28 +599,29 @@ public class DataFrame {
     }
 
     private void handleAddItem(Series<?> col, Object obj){
-        if (!obj.getClass().toString().equals("class java.lang.Object")){
+        // Ensures that the obj variable is not of class Object or String.
+        if (!obj.getClass().toString().equals("class java.lang.Object") && 
+            !obj.getClass().toString().equals("class java.lang.String")){
             if (obj instanceof LocalDate)
-                ((Series<LocalDate>) col).addItem(LocalDate.parse((String) obj));
+                ((Series<LocalDate>) col).addItem((LocalDate) obj);
             else if (obj instanceof Float)
-                ((Series<Float>) col).addItem(Float.parseFloat((String) obj));
+                ((Series<Float>) col).addItem((Float) obj);
             else if (obj instanceof Double)
-                ((Series<Double>) col).addItem(Double.parseDouble((String) obj));
+                ((Series<Double>) col).addItem((Double) obj);
             else if (obj instanceof Short)
-                ((Series<Short>) col).addItem(Short.parseShort((String) obj));
+                ((Series<Short>) col).addItem((Short) obj);
             else if (obj instanceof Integer)
-                ((Series<Integer>) col).addItem(Integer.parseInt((String) obj));
+                ((Series<Integer>) col).addItem((Integer) obj);
             else if (obj instanceof Long)
-                ((Series<Long>) col).addItem(Long.parseLong((String) obj));
+                ((Series<Long>) col).addItem((Long) obj);
             else if (obj instanceof Boolean)
-                ((Series<Boolean>) col).addItem(Boolean.parseBoolean((String) obj));
+                ((Series<Boolean>) col).addItem((Boolean) obj);
             else if (obj instanceof Character)
                 ((Series<Character>) col).addItem(((String) obj).charAt(0));
             else if (obj instanceof String)
                 ((Series<String>) col).addItem((String) obj);
             else 
                 System.out.println("Item: " + obj + " has no data type.");
-
             return;
         }
 

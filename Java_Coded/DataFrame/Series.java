@@ -96,7 +96,7 @@ public class Series<DataType>{
             throw new SeriesOverflowException("Max set size reached.");
         else if (item instanceof DataType == false)
             throw new IllegalArgumentException("The " + getName() + " Series only accept items of the type: " + getType());
-        this.list[currentIndex++] =  item;
+        this.list[currentIndex++] =  (DataType) item;
     }
 
     /**
