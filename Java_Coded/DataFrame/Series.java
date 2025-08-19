@@ -182,6 +182,23 @@ public class Series<DataType>{
         return new Series<>(result, this.type, this.name);
     }
 
+    /**
+     * 
+     * @param index Index of where the data is located
+     * @return A Series containing the singular data, type, and name of the series
+     */
+    public DataType getIndex_DataType(int index){
+        int resolvedIndex = index;
+
+        if (index < 0)
+            resolvedIndex = this.size - index;
+
+        if (resolvedIndex < 0 || resolvedIndex >= this.size)
+            throw new IllegalArgumentException("The parameter index must be within the size of the Series");
+        
+        return (DataType) this.list[resolvedIndex];
+    }
+
     // TODO: Implement this method
     public Series<DataType> getIndex(int startIndex, int endIndex){
         DataType[] newList = createArray(endIndex - startIndex + 1);

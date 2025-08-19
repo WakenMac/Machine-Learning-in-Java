@@ -12,17 +12,19 @@ import DataFrame.*;
 public class LinearRegression {
     public static void main (String [] args){
         System.out.println("Hello World!");
-        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
+        DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
         // DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
-        DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine-Learning-in-Java-main\\Machine-Learning-in-Java\\Datasets\\Car_Price_Prediction.csv");
+        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine-Learning-in-Java-main\\Machine-Learning-in-Java\\Datasets\\Car_Price_Prediction.csv");
         df.setSeed(10);
         System.out.println(df.getInfo());
-        System.out.println("\n\n" + df.iloc(0, 7));
 
         // For Machine Learning
-        // df.split(0.7);
-        // DataFrame training = df.getTraining();
-        // System.out.println(df.getHead());
+        DataFrame [] splitData = df.split(0.7);
+        DataFrame training = splitData[0];
+        DataFrame testing = splitData[1];
+
+        System.out.println(training.getHead(2));
+        System.out.println(testing.getHead(2));
     }
 
     // Column names used for the DataFrame
