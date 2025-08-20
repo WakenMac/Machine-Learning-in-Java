@@ -74,6 +74,11 @@ public class Series<DataType>{
 
     }
 
+    /**
+     * Creates an empty array given a specific size
+     * @param size Size of the array to be made
+     * @return An array with the same DataType as the Series<> object 
+     */
     @SuppressWarnings("unchecked")
     private DataType[] createArray(int size){
         if (size > 0)
@@ -81,6 +86,11 @@ public class Series<DataType>{
         return (DataType[]) Array.newInstance(Object.class, size);
     }
 
+    /**
+     * Creates an empty array given a specific size
+     * @param data A reference array with a set DataType to be used when creating the empty array
+     * @return An array with the same DataType as the data variable/array.
+     */
     @SuppressWarnings("unchecked")
     private DataType[] createArray(DataType [] data){
         if (data != null)
@@ -90,11 +100,15 @@ public class Series<DataType>{
 
     /**
      * Adds a new value to the DataFrame
+     * @param item It is an object to be added to the Series
      */
     public void addItem(DataType item){
         if (this.currentIndex == this.size)
             throw new SeriesOverflowException("Max set size reached.");
-        else if (item instanceof DataType == false)
+        else if (item == null){
+            this.list[currentIndex++] =  (DataType) item;
+            return;
+        } else if (item instanceof DataType == false)
             throw new IllegalArgumentException("The " + getName() + " Series only accept items of the type: " + getType());
         this.list[currentIndex++] =  (DataType) item;
     }
@@ -109,6 +123,7 @@ public class Series<DataType>{
     
     @Override
     /**
+     * Returns a string representation of the object
      * Heavily relies on the currentIndex variable.
      */
     public String toString(){
@@ -183,7 +198,7 @@ public class Series<DataType>{
     }
 
     /**
-     * 
+     * Method to get a singular element from the Series, returned as a standalone element
      * @param index Index of where the data is located
      * @return A Series containing the singular data, type, and name of the series
      */
@@ -199,7 +214,18 @@ public class Series<DataType>{
         return (DataType) this.list[resolvedIndex];
     }
 
-    // TODO: Implement this method
+    /**
+     * Gets a subset of the Series from its startIndex to its endIndex
+     * 
+     * Example:
+     * Series<> series = new Series(new Object[] {1, 2, 3, 4, 5, 6}, "Integer", "Number List");
+     * Series<> newSeries = series.getIndex(0, 3)       // Gets the elements of the series from index 0 to 3.
+     * System.out.println(newSeries)                    // Returns [ 1, 2, 3, 4 ]
+     * 
+     * @param startIndex    The starting row to be included in the subset 
+     * @param endIndex      The last row to be included in the subset (Inclusive)
+     * @return              A new Series object containing the rows from the start to end index
+     */
     public Series<DataType> getIndex(int startIndex, int endIndex){
         DataType[] newList = createArray(endIndex - startIndex + 1);
         

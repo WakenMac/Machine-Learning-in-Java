@@ -1,15 +1,12 @@
 package DataFrame;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Hashtable;
 import java.util.Random;
 
 import MachineLearningExceptions.*;
-import DataFrame.Series;
 import java.io.BufferedReader;
 
 /**
@@ -162,7 +159,7 @@ public class DataFrame {
 
             br.close();
         } catch (Exception e){
-            System.err.println("ERROR: prepareFileData() \n" + e.getStackTrace()[0].getMethodName() + e.getMessage() + "\n");
+            System.err.println("ERROR: prepareFileData() \n" + e + " " + e.getStackTrace()[0].getMethodName() + " " + e.getMessage() + "\n");
         }
     }
 
@@ -534,18 +531,6 @@ public class DataFrame {
         throw new UnknownColumnException("The column \"" + colName + "\" doesn't exist in the DataFrame.");
     }
 
-    // TODO: Implement this method
-    // Gets the training DataFrame
-    public DataFrame getTraining(){
-        return null;
-    }
-
-    // TODO: Implement this method:
-    // Gets the testing DataFrame
-    public DataFrame getTesting(){
-        return null;
-    }
-
 // ===================================================================================================================================
 //  MACHINE LEARNING RELATED
 
@@ -618,8 +603,10 @@ public class DataFrame {
                 ((Series<Boolean>) col).addItem((Boolean) obj);
             else if (obj instanceof Character)
                 ((Series<Character>) col).addItem(((String) obj).charAt(0));
-            else if (obj instanceof String)
+            else if (obj instanceof String && ((String) obj).length() > 0)
                 ((Series<String>) col).addItem((String) obj);
+            else if (obj instanceof String && ((String) obj).length() == 0)
+                ((Series<String>) col).addItem((String) null);
             else 
                 System.out.println("Item: " + obj + " has no data type.");
             return;
