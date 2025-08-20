@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDate;
 import java.util.Hashtable;
+import java.util.Random;
 
 import MachineLearningExceptions.*;
-
 import java.io.BufferedReader;
 
 /**
@@ -31,18 +31,27 @@ public class DataFrame {
      * Capture the DataType for each row
      */
 
+     // The columns used to store the data.
     @SuppressWarnings("rawtypes")
     private Series[] columns;
+
+    // Dimensions of the DataFrame
     private int columnSize;
     private int rowSize;
+
+    // Seed used for methods relying on randomization (i.e., split())
+    private int seed;
 
     public static void main(String [] args){
         // DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
         DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
-        System.out.println(df.getHead());
         System.out.println(df.getInfo());
-        System.out.println(df.select(new String[] {"Id", "SepalLengthCm", "PetalLengthCm", "Species"})
-                                .getHead());
+        System.out.println(df);
+        // System.out.println(df.getHead());
+        // System.out.println(df.select("Id", "SepalLengthCm", "PetalLengthCm", "Species")
+        //                         .getHead());
+        // System.out.println(df.loc("Id", "SepalLengthCm").getHead());
+        System.out.println(df.iloc(0, 0, 3, 2).getHead());
     }
 
     /**
@@ -56,18 +65,14 @@ public class DataFrame {
         this.rowSize = shape[0];
         this.columnSize = shape[1];
         this.columns = duplicateColumns(df.getColumns());
+        this.seed = df.seed;
     }
 
     public DataFrame(String pathToFile){
-        try {
-            File file = new File(pathToFile);
-            prepareDimensions(file);
-            prepareFileData(file);
-        } catch (Exception e){
-            System.err.println(e);
-            setColumnSize(0);
-            setRowSize(0);
-        }
+        File file = new File(pathToFile);
+        prepareDimensions(file);
+        prepareFileData(file);
+        this.seed = -1;
     }
 
     private DataFrame(Series<?>[] seriesArray){
@@ -83,6 +88,7 @@ public class DataFrame {
         this.rowSize = seriesArray[0].getSize();
         this.columnSize = seriesArray.length;
         this.columns = duplicateColumns(seriesArray);
+        this.seed = -1;
     }
 
 // ===================================================================================================================================
@@ -142,33 +148,18 @@ public class DataFrame {
             // PART 3: Create the columns
             createColumns(file);
 
-            // Get the data types per column
-            String [] types = new String[this.columnSize];
-            for (int i = 0; i < this.columnSize; i++){
-                types[i] = this.columns[i].getType();
-            }
-
             // Enter the records
             br.readLine(); // Skips the line containing the column names
             for (int i = 0; i < this.rowSize; i++){
                 String [] row = br.readLine().split(",");
                 for (int j = 0; j < this.columnSize; j++){
-                    if (types[j].equals("LocalDate"))
-                        this.columns[j].addItem(LocalDate.parse(row[j]));
-                    else if (types[j].equals("Float"))
-                        this.columns[j].addItem(Float.parseFloat(row[j]));
-                    else if (types[j].equals("Integer"))
-                        this.columns[j].addItem(Integer.parseInt(row[j]));
-                    else if (types[j].equals("Boolean"))
-                        this.columns[j].addItem(Boolean.parseBoolean(row[j]));
-                    else if (types[j].equals("String"))
-                        this.columns[j].addItem(row[j]);
+                    handleAddItem(this.columns[j], row[j]);
                 }
             }
 
             br.close();
         } catch (Exception e){
-            System.err.println("ERROR: prepareFileData() \n" + e + "\n");
+            System.err.println("ERROR: prepareFileData() \n" + e + " " + e.getStackTrace()[0].getMethodName() + " " + e.getMessage() + "\n");
         }
     }
 
@@ -198,10 +189,18 @@ public class DataFrame {
                     this.columns[i] = new Series<LocalDate>(type, this.rowSize, columnNames[i]);
                 else if (type == "Float")
                     this.columns[i] = new Series<Float>(type, this.rowSize, columnNames[i]);
+                else if (type == "Double")
+                    this.columns[i] = new Series<Double>(type, this.rowSize, columnNames[i]);
+                else if (type == "Short") 
+                    this.columns[i] = new Series<Short>(type, this.rowSize, columnNames[i]);
                 else if (type == "Integer") 
                     this.columns[i] = new Series<Integer>(type, this.rowSize, columnNames[i]);
+                else if (type == "Long") 
+                    this.columns[i] = new Series<Long>(type, this.rowSize, columnNames[i]);
                 else if (type == "Boolean")
                     this.columns[i] = new Series<Boolean>(type, this.rowSize, columnNames[i]);
+                else if (type == "Character")
+                    this.columns[i] = new Series<Character>(type, this.rowSize, columnNames[i]);
                 else if (type == "String")
                     this.columns[i] = new Series<String>(type, this.rowSize, columnNames[i]);
             }
@@ -209,6 +208,34 @@ public class DataFrame {
             br.close();
         } catch (Exception e){
             System.err.println(e);
+        }
+    }
+
+    private void createColumns(Series<?> [] otherColumns, int otherRowSize){
+        for (int i = 0; i < this.columns.length; i++){
+            String type = this.columns[i].getType();
+            String colName = this.columns[i].getName();
+
+            if (type == "Unknown"){
+                throw new IllegalArgumentException("Undefinable Data Type: " + type);
+            } else if (type == "LocalDate")
+                otherColumns[i] = new Series<LocalDate>(type, otherRowSize, colName);
+            else if (type == "Float")
+                otherColumns[i] = new Series<Float>(type, otherRowSize, colName);
+            else if (type == "Double")
+                otherColumns[i] = new Series<Double>(type, otherRowSize, colName);
+            else if (type == "Short") 
+                otherColumns[i] = new Series<Short>(type, otherRowSize, colName);
+            else if (type == "Integer") 
+                otherColumns[i] = new Series<Integer>(type, otherRowSize, colName);
+            else if (type == "Long") 
+                otherColumns[i] = new Series<Long>(type, otherRowSize, colName);
+            else if (type == "Boolean")
+                otherColumns[i] = new Series<Boolean>(type, otherRowSize, colName);
+            else if (type == "Character")
+                otherColumns[i] = new Series<Character>(type, otherRowSize, colName);
+            else if (type == "String")
+                otherColumns[i] = new Series<String>(type, otherRowSize, colName);
         }
     }
 
@@ -224,13 +251,32 @@ public class DataFrame {
         } catch (Exception e){}
 
         try {
-            if (data.contains(".")){
-                Float.parseFloat(data);
-                return "Float";
-            } else {
-                Integer.parseInt(data);
-                return "Integer";
-            }
+            if (!data.contains("."))
+                throw new IllegalArgumentException("");
+            Float.parseFloat(data);
+            return "Float";
+        } catch (Exception e){}
+
+        try {
+            if (!data.contains("."))
+                throw new IllegalArgumentException("");
+            Double.parseDouble(data);
+            return "Double";
+        } catch (Exception e){}
+
+        try {
+            Integer.parseInt(data);
+            return "Integer";
+        } catch (Exception e){}
+
+        try {
+            Short.parseShort(data);
+            return "Short";
+        } catch (Exception e){}
+
+        try {
+            Integer.parseInt(data);
+            return "Integer";
         } catch (Exception e){}
 
         try {
@@ -240,7 +286,7 @@ public class DataFrame {
             }
         } catch (Exception e){}
 
-        return "String";
+        return (data.length() == 1)? "Character" : "String";
     }
     
 // ===================================================================================================================================
@@ -272,8 +318,18 @@ public class DataFrame {
         this.columnSize = columnSize;
     }
 
+    public void setSeed(int seed){
+        if (seed == -1)
+            throw new IllegalArgumentException("Seed must be a positive non-zero number.");
+        this.seed = seed;
+    }
+
 // ===================================================================================================================================
 //  SUBSETTING
+
+    public Series<?> select(String colName){
+        return select(new String[] {colName}).getColumns()[0];
+    }
 
     /**
      * Selects the columns from a DataFrame
@@ -282,7 +338,7 @@ public class DataFrame {
      * @return A new DataFrame composing of only the selected columns. 
      *         Note that the order of the Strings affect the column order.
      */
-    public DataFrame select(String [] colNames){
+    public DataFrame select(String... colNames){
         Series<?>[] seriesArray = new Series[colNames.length];
 
         // Adds the DataFrames columns to a HashSet
@@ -294,7 +350,7 @@ public class DataFrame {
         for (int i = 0; i < colNames.length; i++){
             Series<?> result = set.getOrDefault(colNames[i], null);
             if (result == null)
-                throw new UnknownColumnException("DataFrame doesn't contain column " + colNames[i]);
+                throw new UnknownColumnException("The column \"" + colNames[i] + "\" doesn't exist in the DataFrame.");
             seriesArray[i] = new Series<>(result);
         }
         
@@ -302,22 +358,85 @@ public class DataFrame {
         return new DataFrame(seriesArray);
     }
 
-    // TODO: Implement this method
-    public Series<?> selectIndex(int row, int column){
-        // Check if this index exists
-        // Get the series based on the column then run getIndex.
+    /**
+     * Splits the DataFrame to return the selected columns from the startCol till the endCol column
+     * 
+     * Example: 
+     * The DataFrame "df" contains the following columns in this order: Id, Name, Number, Address
+     * df.loc("Id", "Number"); // Returns a DataFrame containing the Id, Name, and Number columns.
+     * 
+     * @param startCol The starting column
+     * @param endCol The last column to be selected in the DataFrame
+     * @return
+     */
+    public DataFrame loc(String startCol, String endCol){
+        int startIndex = -1;
+        int endIndex = -1;
 
-        return null;    
+        for (int i = 0; i < this.columns.length; i++){
+            if (startIndex == -1 && this.columns[i].getName().equals(startCol))
+                startIndex = i;
+            
+            if (startIndex != 1 && this.columns[i].getName().equals(endCol)){
+                endIndex = i;
+                break;
+            }
+        }
+
+        if (startIndex == -1)
+            throw new UnknownColumnException("The column \"" + startCol + "\" doesn't exist in the DataFrame.");
+        else if (endIndex == -1)
+            throw new UnknownColumnException("The column \"" + endCol + "\" doesn't exist in the DataFrame.");
+
+        String [] list = new String[endIndex - startIndex + 1];
+        for (int i = startIndex; i <= endIndex; i++)
+            list[i - startIndex] = this.columns[i].getName();
+
+        return select(list);
     }
 
-    // TODO: Implement this method
-    public Series<?>[] selectIndex(int startRow, int endRow, int startCol, int endCol){
+    public Series<?> iloc(int rowIndex, int columnIndex){
+        if (rowIndex >= this.rowSize || columnIndex >= this.columnSize)
+            throw new IllegalArgumentException("The parameters \"row\" or \"column\" must be within the dimension of the DataFrame.");
+        
+        return new Series<>(this.columns[columnIndex].getIndex(rowIndex));
+    }
 
-        return null;
+    /**
+     * Splicing the DataFrame by selecting the start, end 
+     * @param startRow
+     * @param endRow
+     * @param startCol
+     * @param endCol
+     * @return
+     */
+    public DataFrame iloc(int startRow, int startCol, int endRow, int endCol){
+        if (startCol > endCol)
+            throw new IllegalArgumentException("The parameter \"startCol\" must be less than or equal to the \"endCol\" parameter");
+        else if (startRow > endRow)
+            throw new IllegalArgumentException("The parameter \"startRow\" must be less than or equal to the \"endRow\" parameter");
+        else if (startRow < 0 || endRow < 0)
+            throw new IllegalArgumentException("The parameter \"startRow\" and \"endRow\" must be a positive number");
+        else if (endRow > this.rowSize || endCol > this.columnSize)
+            throw new IllegalArgumentException("The parameter \"endRow\" and \"endCol\" must be a within the DataFrame's dimensions.");
+        
+        String [] colNames = new String[endCol - startCol + 1];
+        for (int i = startCol; i <= endCol; i++)
+            colNames[i - startCol] = this.columns[i].getName();
+
+        Series<?>[] newColumns = new Series[endCol - startCol + 1];
+        for (int i = startCol; i <= endCol; i++)
+            newColumns[i] = this.columns[i].getIndex(startRow, endRow);
+
+        return new DataFrame(newColumns).select(colNames);
     }
 
 // ===================================================================================================================================
 //  GETTERS
+
+    public int getSeed(){
+        return this.seed;
+    }
 
     private Series<?>[] getColumns(){
         return duplicateColumns(this.columns);
@@ -379,6 +498,14 @@ public class DataFrame {
     }
 
     /**
+     * Method to return a string containing the dimensions of the DataFrame
+     * @return A String containing the row and column dimension of a DataFrame
+     */
+    public String getShape_String(){
+        return "[ " + this.rowSize + ", " + this.columnSize + " ]";
+    }
+
+    /**
      * Gets the column names and data types for each column
      * @return A String containing the size of the Data Frame and its columns' data types
      */
@@ -387,7 +514,7 @@ public class DataFrame {
 
         tempString += "Dimension : [ " + this.rowSize + ", " + this.columnSize + " ] \n\nColumns: \n";
         for (int i = 0; i < this.columnSize; i++){
-            tempString += "   " + this.columns[i].getName() + " - " + this.columns[i].getType();
+            tempString += "   " + this.columns[i].getName() + " - " + this.columns[i].getIndex_DataType(0).getClass();
 
             if (i < this.columnSize - 1)
                 tempString += "\n";
@@ -395,16 +522,117 @@ public class DataFrame {
         return tempString;
     }
 
+    public String getDataType(String colName){
+        for (int i = 0; i < this.columns.length; i++){
+            if (this.columns[i].getName().equals(colName))
+                return this.columns[i].getIndex_DataType(0).getClass().toString();
+        }
+
+        throw new UnknownColumnException("The column \"" + colName + "\" doesn't exist in the DataFrame.");
+    }
+
 // ===================================================================================================================================
 //  MACHINE LEARNING RELATED
 
     // TODO: Implement this method
-    public DataFrame split(float partition){
+    /**
+     * Splits the DataFrame for training and testing.
+     * 
+     * @param partition Percentage of data used for the testing data
+     * @return A two element array containing the DataFrame for testing and training respectively
+     */
+    public DataFrame[] split(double partition){
+        if (partition > 1)
+            throw new IllegalArgumentException("The partition parameter must be set between 0 to 1.");
         
-        return null;
+        // Get the number of rows for partitioning / training
+        int trainingRow = (int) Math.floor(partition * this.rowSize);
+        Random dice = (this.seed != -1)? new Random(this.seed) : new Random();
+
+        int [] indices = new int[this.rowSize];
+        for (int i = 0; i < this.rowSize; i++)
+            indices[i] = i;
+        
+        // Shuffle the indices
+        for (int i = 0; i < this.rowSize; i++){
+            int randomIndex = dice.nextInt(this.rowSize);
+            int temp = indices[i];
+            indices[i] = indices[randomIndex];
+            indices[randomIndex] = temp;
+        }
+
+        // Instantiate the training and testing DataFrames
+        Series<?>[] trainingColumns = new Series[this.columnSize];
+        Series<?>[] testingColumns = new Series[this.columnSize];
+        createColumns(trainingColumns, trainingRow);
+        createColumns(testingColumns, this.rowSize - trainingRow);
+
+        // Fill the training and testing DataFrames
+        for (int i = 0; i < trainingRow; i++){
+            for (int j = 0; j < this.columnSize; j++){
+                handleAddItem(trainingColumns[j], this.columns[j].getIndex_DataType(indices[i]));
+            }
+        }
+
+        for (int i = trainingRow; i < this.rowSize; i++){
+            for (int j = 0; j < this.columnSize; j++){
+                handleAddItem(testingColumns[j], this.columns[j].getIndex_DataType(indices[i]));
+            }
+        }
+
+        return new DataFrame[] {new DataFrame(trainingColumns), new DataFrame(testingColumns)};
     }
 
+    private void handleAddItem(Series<?> col, Object obj){
+        // Ensures that the obj variable is not of class Object or String.
+        if (!obj.getClass().toString().equals("class java.lang.Object") && 
+            !obj.getClass().toString().equals("class java.lang.String")){
+            if (obj instanceof LocalDate)
+                ((Series<LocalDate>) col).addItem((LocalDate) obj);
+            else if (obj instanceof Float)
+                ((Series<Float>) col).addItem((Float) obj);
+            else if (obj instanceof Double)
+                ((Series<Double>) col).addItem((Double) obj);
+            else if (obj instanceof Short)
+                ((Series<Short>) col).addItem((Short) obj);
+            else if (obj instanceof Integer)
+                ((Series<Integer>) col).addItem((Integer) obj);
+            else if (obj instanceof Long)
+                ((Series<Long>) col).addItem((Long) obj);
+            else if (obj instanceof Boolean)
+                ((Series<Boolean>) col).addItem((Boolean) obj);
+            else if (obj instanceof Character)
+                ((Series<Character>) col).addItem(((String) obj).charAt(0));
+            else if (obj instanceof String && ((String) obj).length() > 0)
+                ((Series<String>) col).addItem((String) obj);
+            else if (obj instanceof String && ((String) obj).length() == 0)
+                ((Series<String>) col).addItem((String) null);
+            else 
+                System.out.println("Item: " + obj + " has no data type.");
+            return;
+        }
 
+        if (col.getType().equals("LocalDate"))
+            ((Series<LocalDate>) col).addItem(LocalDate.parse((String) obj));
+        else if (col.getType().equals("Float"))
+            ((Series<Float>) col).addItem(Float.parseFloat((String) obj));
+        else if (col.getType().equals("Double"))
+            ((Series<Double>) col).addItem(Double.parseDouble((String) obj));
+        else if (col.getType().equals("Short"))
+            ((Series<Short>) col).addItem(Short.parseShort((String) obj));
+        else if (col.getType().equals("Integer"))
+            ((Series<Integer>) col).addItem(Integer.parseInt((String) obj));
+        else if (col.getType().equals("Long"))
+            ((Series<Long>) col).addItem(Long.parseLong((String) obj));
+        else if (col.getType().equals("Boolean"))
+            ((Series<Boolean>) col).addItem(Boolean.parseBoolean((String) obj));
+        else if (col.getType().equals("Character"))
+            ((Series<Character>) col).addItem(((String) obj).charAt(0));
+        else if (col.getType().equals("String"))
+            ((Series<String>) col).addItem((String) obj);
+        else 
+            System.out.println("Item: " + obj + " has no data type.");
+    }
 
 // ===================================================================================================================================
 //  PRINT FORMATTING

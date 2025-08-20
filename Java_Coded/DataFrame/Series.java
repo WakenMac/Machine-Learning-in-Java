@@ -5,27 +5,37 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class Series<DataType>{
+
+    // Main Method used to test if the Series works as intended.
     public static void main(String [] args){
         System.out.println("Hello World");
 
         String [] tempList = {"5", "4", "3", "2", "1", "1","5.1","3.5","1.4","0.2"};
-        try {
-            Integer.parseInt(tempList[0]);
-            Series<Float> set = new Series<Float>("Float", tempList.length, "Sample");
-            
-            for (int i = 0; i < tempList.length; i++)
-                set.addItem(Float.parseFloat(tempList[i]));
-            Series<?> otherList = new Series<>(set.getList(), set.getType(), set.getName());
-            System.out.println(otherList);
-        } catch (Exception e){
-            System.err.println(e);
-        }
+        Series<Float> set = new Series<Float>("Float", tempList.length, "Sample");
+        
+        for (int i = 0; i < tempList.length; i++)
+            set.addItem(Float.parseFloat(tempList[i]));
+        
+        // Series<Float> otherList = new Series<>(set);
+        Series<?> otherList = set.duplicate();
+        System.out.println(otherList.getIndex(3, 6));
     }
 
+    // Used to determine the type of data stored.
     private String type;
+
+    // Size of the Series.
+    // This is used when instantiating the DataType [] list array.
     private int size;
+
+    // Current size while adding elements to the Series
+    // This is also essential when getting the index from a Series.
     private int currentIndex;
+
+    // Column name, or name for the Series
     private String name;
+
+    // The list of items to be stored
     private DataType[] list;
 
     public Series(){
@@ -41,15 +51,11 @@ public class Series<DataType>{
     }
 
     public Series(DataType[] data, String type, String name){
-        try {
-            setType(type);
-            setName(name);
-            setSize(data.length);
-            this.currentIndex = data.length;
-            this.list = Arrays.copyOf(data, data.length);
-        } catch (Exception e){
-            System.err.println(e);
-        }
+        this.type = type;
+        this.name = name;
+        this.size = data.length;
+        this.currentIndex = data.length;
+        this.list = Arrays.copyOf(data, data.length);
     }
 
     public Series(String type, int size, String name){
@@ -68,6 +74,12 @@ public class Series<DataType>{
 
     }
 
+    /**
+     * Creates an empty array given a specific size
+     * @param size Size of the array to be made
+     * @return An array with the same DataType as the Series<> object 
+     */
+    @SuppressWarnings("unchecked")
     private DataType[] createArray(int size){
         if (size > 0)
             return (DataType[]) Array.newInstance(list.getClass().getComponentType(), size);
@@ -75,18 +87,43 @@ public class Series<DataType>{
     }
 
     /**
+     * Creates an empty array given a specific size
+     * @param data A reference array with a set DataType to be used when creating the empty array
+     * @return An array with the same DataType as the data variable/array.
+     */
+    @SuppressWarnings("unchecked")
+    private DataType[] createArray(DataType [] data){
+        if (data != null)
+            return (DataType[]) Array.newInstance(data.getClass().getComponentType(), data.length);
+        return (DataType[]) Array.newInstance(Object.class, data.length);
+    }
+
+    /**
      * Adds a new value to the DataFrame
+     * @param item It is an object to be added to the Series
      */
     public void addItem(DataType item){
         if (this.currentIndex == this.size)
             throw new SeriesOverflowException("Max set size reached.");
-        else if (item instanceof DataType == false)
+        else if (item == null){
+            this.list[currentIndex++] =  (DataType) item;
+            return;
+        } else if (item instanceof DataType == false)
             throw new IllegalArgumentException("The " + getName() + " Series only accept items of the type: " + getType());
-        this.list[currentIndex++] =  item;
+        this.list[currentIndex++] =  (DataType) item;
+    }
+
+    /**
+     * Make a duplicate deep copy of a Series
+     * @return A copy of a specific Series
+     */
+    public Series<DataType> duplicate(){
+        return new Series<DataType>(this);
     }
     
     @Override
     /**
+     * Returns a string representation of the object
      * Heavily relies on the currentIndex variable.
      */
     public String toString(){
@@ -113,7 +150,7 @@ public class Series<DataType>{
         this.size = size;
     }
 
-    private void setName(String name){
+    public void setName(String name){
         this.name = name;
     }
 
@@ -124,6 +161,7 @@ public class Series<DataType>{
 // ===================================================================================================================================
 //  GETTERS
 
+    @SuppressWarnings("unchecked")
     private DataType[] getList(){
         return (DataType[]) Arrays.copyOf(this.list, list.length);
     }
@@ -159,13 +197,46 @@ public class Series<DataType>{
         return new Series<>(result, this.type, this.name);
     }
 
-    // TODO: Implement this method
-    public DataType[] getIndex(int startIndex, int endIndex){
-        return null;
+    /**
+     * Method to get a singular element from the Series, returned as a standalone element
+     * @param index Index of where the data is located
+     * @return A Series containing the singular data, type, and name of the series
+     */
+    public DataType getIndex_DataType(int index){
+        int resolvedIndex = index;
+
+        if (index < 0)
+            resolvedIndex = this.size - index;
+
+        if (resolvedIndex < 0 || resolvedIndex >= this.size)
+            throw new IllegalArgumentException("The parameter index must be within the size of the Series");
+        
+        return (DataType) this.list[resolvedIndex];
     }
 
-    private void incrementSize(){
-        this.size++;
-    }
+    /**
+     * Gets a subset of the Series from its startIndex to its endIndex
+     * 
+     * Example:
+     * Series<> series = new Series(new Object[] {1, 2, 3, 4, 5, 6}, "Integer", "Number List");
+     * Series<> newSeries = series.getIndex(0, 3)       // Gets the elements of the series from index 0 to 3.
+     * System.out.println(newSeries)                    // Returns [ 1, 2, 3, 4 ]
+     * 
+     * @param startIndex    The starting row to be included in the subset 
+     * @param endIndex      The last row to be included in the subset (Inclusive)
+     * @return              A new Series object containing the rows from the start to end index
+     */
+    public Series<DataType> getIndex(int startIndex, int endIndex){
+        DataType[] newList = createArray(endIndex - startIndex + 1);
+        
+        if (startIndex >= currentIndex || startIndex > endIndex)
+            throw new IllegalArgumentException("The parameter \"startIndex\" must be less than the object size and less than the endIndex.");
+        else if (endIndex >= currentIndex)
+            throw new IllegalArgumentException("The parameter \"endIndex\" must be less than the object size.");
 
+        for (int i = startIndex; i <= endIndex; i++)
+            newList[i - startIndex] = this.list[i];
+
+        return new Series<DataType>(newList, this.type, this.name);
+    }
 }
