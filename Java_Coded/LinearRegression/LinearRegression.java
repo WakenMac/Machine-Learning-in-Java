@@ -22,12 +22,13 @@ public class LinearRegression {
         df.setSeed(10);
 
         // For Machine Learning
-        DataFrame [] splitData = df.split(1);
+        DataFrame [] splitData = df.split(.75);
         DataFrame training = splitData[0];
         DataFrame testing = splitData[1];
 
         LinearRegression lr = new LinearRegression();
         lr.train(training, "Sales", "TV");
+        long end = System.nanoTime();
         System.out.println(lr);
 
         float [] coefs = lr.getRegressionCoefs();
@@ -39,9 +40,8 @@ public class LinearRegression {
         float [] predictors = new float[] {100};
         float salesResult = lr.predict(predictors);
         System.out.println("If TV = 100, the Sales will be: " + salesResult);
-        long end = System.nanoTime();
         System.out.println(end - start);
-        System.out.println((float) (end - start) / 1_000_000_000);
+        System.out.println("Time elapsed: " + (float) (end - start) / 1_000_000_000 + " seconds.");
     }
 
     // Column names used for the DataFrame
@@ -120,8 +120,9 @@ public class LinearRegression {
         sumX = sumY = sumXY = sumX2 = 0;
         Series<?> iv = this.trainingDataset.select(this.independentVars[0]);    // iv represents x (Independent Var)
         Series<?> dv = this.trainingDataset.select(this.dependentVar);          // dv represents y (Dependent Var)
+        int n = dv.getSize();
 
-        for (int i = 0; i < dv.getSize(); i++){
+        for (int i = 0; i < n; i++){
             // Gets the values of X and Y
             Object tempX = iv.getIndex_DataType(i);
             Object tempY = dv.getIndex_DataType(i);
@@ -138,8 +139,9 @@ public class LinearRegression {
             sumX2 += x * x;
         }
 
-        this.bias = ((sumY * sumX2) - (sumX * sumXY)) / ((iv.getSize() * sumX2) - (sumX * sumX));
-        independentPredictors[0] = ((iv.getSize() * sumXY) - (sumX * sumY)) / ((iv.getSize() * sumX2) - (sumX * sumX));
+        this.independentPredictors[0] = ((iv.getSize() * sumXY) - (sumX * sumY)) / ((iv.getSize() * sumX2) - (sumX * sumX));
+        this.bias = ((sumY / n) - ( this.independentPredictors[0] * (sumX / n)));
+        
     }
 
     // TODO: Implement this method
