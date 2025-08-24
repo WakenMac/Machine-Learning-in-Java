@@ -23,8 +23,13 @@
 hs_err_pid*
 replay_pid*
 
+# Local File Paths & Keys
+.env
+config.properties
+__pycache__
+
 # Book on Machine Learning 
 An Introduction to Statistical Learning - Gareth James.pdf
 
 # Java Files
-test.java
+Tests*

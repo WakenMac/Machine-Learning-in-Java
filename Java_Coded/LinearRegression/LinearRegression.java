@@ -13,37 +13,6 @@ import MachineLearningExceptions.NoTrainingExecutedException;
  * 3. When using the predict() method, pass the variables in the same order as how you've trained the data.
  */
 public class LinearRegression {
-    public static void main (String [] args){
-        long start = System.nanoTime();
-        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
-        DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
-        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine-Learning-in-Java-main\\Machine-Learning-in-Java\\Datasets\\Car_Price_Prediction.csv");
-        
-        df.setSeed(10);
-
-        // For Machine Learning
-        DataFrame [] splitData = df.split(.75);
-        DataFrame training = splitData[0];
-        DataFrame testing = splitData[1];
-
-        LinearRegression lr = new LinearRegression();
-        lr.train(training, "Sales", "TV");
-        long end = System.nanoTime();
-        System.out.println(lr);
-
-        float [] coefs = lr.getRegressionCoefs();
-        float intercept = lr.getIntercept();
-        System.out.println("\n\nCoefficient: " + coefs[0]);
-        System.out.println("Intercept: " + intercept);
-        System.out.println((coefs[0] * 100 + intercept));
-
-        float [] predictors = new float[] {100};
-        float salesResult = lr.predict(predictors);
-        System.out.println("If TV = 100, the Sales will be: " + salesResult);
-        System.out.println(end - start);
-        System.out.println("Time elapsed: " + (float) (end - start) / 1_000_000_000 + " seconds.");
-    }
-
     // Column names used for the DataFrame
     String [] independentVars;
     String [] independentVarClasses;
