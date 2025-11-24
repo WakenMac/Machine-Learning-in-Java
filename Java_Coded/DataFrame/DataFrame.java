@@ -44,7 +44,8 @@ public class DataFrame {
 
     public static void main(String [] args){
         // DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
-        DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
+        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
+        DataFrame df = new DataFrame("D:\\Waks - Academics\\Side Projects\\Machine-Learning-in-Java\\Datasets\\Iris.csv");
         System.out.println(df.getInfo());
         System.out.println(df);
         // System.out.println(df.getHead());
@@ -182,7 +183,7 @@ public class DataFrame {
             for (int i = 0; i < this.columnSize; i++){
                 String type = getType(firstRow[i]);
 
-                if (type == "Unknown"){
+                if (("Unknown").equals(type)){
                     br.close();
                     throw new IllegalArgumentException("Undefinable Data Type: " + firstRow[i]);
                 } else if (type == "LocalDate")
