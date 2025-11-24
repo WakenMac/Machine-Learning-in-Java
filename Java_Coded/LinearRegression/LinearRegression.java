@@ -13,37 +13,6 @@ import MachineLearningExceptions.NoTrainingExecutedException;
  * 3. When using the predict() method, pass the variables in the same order as how you've trained the data.
  */
 public class LinearRegression {
-    public static void main (String [] args){
-        long start = System.nanoTime();
-        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
-        DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
-        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine-Learning-in-Java-main\\Machine-Learning-in-Java\\Datasets\\Car_Price_Prediction.csv");
-        
-        df.setSeed(10);
-
-        // For Machine Learning
-        DataFrame [] splitData = df.split(1);
-        DataFrame training = splitData[0];
-        DataFrame testing = splitData[1];
-
-        LinearRegression lr = new LinearRegression();
-        lr.train(training, "Sales", "TV");
-        System.out.println(lr);
-
-        float [] coefs = lr.getRegressionCoefs();
-        float intercept = lr.getIntercept();
-        System.out.println("\n\nCoefficient: " + coefs[0]);
-        System.out.println("Intercept: " + intercept);
-        System.out.println((coefs[0] * 100 + intercept));
-
-        float [] predictors = new float[] {100};
-        float salesResult = lr.predict(predictors);
-        System.out.println("If TV = 100, the Sales will be: " + salesResult);
-        long end = System.nanoTime();
-        System.out.println(end - start);
-        System.out.println((float) (end - start) / 1_000_000_000);
-    }
-
     // Column names used for the DataFrame
     String [] independentVars;
     String [] independentVarClasses;
@@ -120,8 +89,9 @@ public class LinearRegression {
         sumX = sumY = sumXY = sumX2 = 0;
         Series<?> iv = this.trainingDataset.select(this.independentVars[0]);    // iv represents x (Independent Var)
         Series<?> dv = this.trainingDataset.select(this.dependentVar);          // dv represents y (Dependent Var)
+        int n = dv.getSize();
 
-        for (int i = 0; i < dv.getSize(); i++){
+        for (int i = 0; i < n; i++){
             // Gets the values of X and Y
             Object tempX = iv.getIndex_DataType(i);
             Object tempY = dv.getIndex_DataType(i);
@@ -138,8 +108,9 @@ public class LinearRegression {
             sumX2 += x * x;
         }
 
-        this.bias = ((sumY * sumX2) - (sumX * sumXY)) / ((iv.getSize() * sumX2) - (sumX * sumX));
-        independentPredictors[0] = ((iv.getSize() * sumXY) - (sumX * sumY)) / ((iv.getSize() * sumX2) - (sumX * sumX));
+        this.independentPredictors[0] = ((iv.getSize() * sumXY) - (sumX * sumY)) / ((iv.getSize() * sumX2) - (sumX * sumX));
+        this.bias = ((sumY / n) - ( this.independentPredictors[0] * (sumX / n)));
+        
     }
 
     // TODO: Implement this method

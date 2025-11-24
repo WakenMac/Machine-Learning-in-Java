@@ -584,6 +584,24 @@ public class DataFrame {
         return new DataFrame[] {new DataFrame(trainingColumns), new DataFrame(testingColumns)};
     }
 
+    /**
+     *              No switches?
+     * ⠀⣞⢽⢪⢣⢣⢣⢫⡺⡵⣝⡮⣗⢷⢽⢽⢽⣮⡷⡽⣜⣜⢮⢺⣜⢷⢽⢝⡽⣝
+        ⠸⡸⠜⠕⠕⠁⢁⢇⢏⢽⢺⣪⡳⡝⣎⣏⢯⢞⡿⣟⣷⣳⢯⡷⣽⢽⢯⣳⣫⠇
+        ⠀⠀⢀⢀⢄⢬⢪⡪⡎⣆⡈⠚⠜⠕⠇⠗⠝⢕⢯⢫⣞⣯⣿⣻⡽⣏⢗⣗⠏⠀
+        ⠀⠪⡪⡪⣪⢪⢺⢸⢢⢓⢆⢤⢀⠀⠀⠀⠀⠈⢊⢞⡾⣿⡯⣏⢮⠷⠁⠀⠀
+        ⠀⠀⠀⠈⠊⠆⡃⠕⢕⢇⢇⢇⢇⢇⢏⢎⢎⢆⢄⠀⢑⣽⣿⢝⠲⠉⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠀⡿⠂⠠⠀⡇⢇⠕⢈⣀⠀⠁⠡⠣⡣⡫⣂⣿⠯⢪⠰⠂⠀⠀⠀⠀
+        ⠀⠀⠀⠀⡦⡙⡂⢀⢤⢣⠣⡈⣾⡃⠠⠄⠀⡄⢱⣌⣶⢏⢊⠂⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⢝⡲⣜⡮⡏⢎⢌⢂⠙⠢⠐⢀⢘⢵⣽⣿⡿⠁⠁⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠨⣺⡺⡕⡕⡱⡑⡆⡕⡅⡕⡜⡼⢽⡻⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⣼⣳⣫⣾⣵⣗⡵⡱⡡⢣⢑⢕⢜⢕⡝⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⣴⣿⣾⣿⣿⣿⡿⡽⡑⢌⠪⡢⡣⣣⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⡟⡾⣿⢿⢿⢵⣽⣾⣼⣘⢸⢸⣞⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+        ⠀⠀⠀⠀⠁⠇⠡⠩⡫⢿⣝⡻⡮⣒⢽⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+     * @param col
+     * @param obj
+     */
     private void handleAddItem(Series<?> col, Object obj){
         // Ensures that the obj variable is not of class Object or String.
         if (!obj.getClass().toString().equals("class java.lang.Object") && 
@@ -610,29 +628,28 @@ public class DataFrame {
                 ((Series<String>) col).addItem((String) null);
             else 
                 System.out.println("Item: " + obj + " has no data type.");
-            return;
+        } else {
+            if (col.getType().equals("LocalDate"))
+                ((Series<LocalDate>) col).addItem(LocalDate.parse((String) obj));
+            else if (col.getType().equals("Float"))
+                ((Series<Float>) col).addItem(Float.parseFloat((String) obj));
+            else if (col.getType().equals("Double"))
+                ((Series<Double>) col).addItem(Double.parseDouble((String) obj));
+            else if (col.getType().equals("Short"))
+                ((Series<Short>) col).addItem(Short.parseShort((String) obj));
+            else if (col.getType().equals("Integer"))
+                ((Series<Integer>) col).addItem(Integer.parseInt((String) obj));
+            else if (col.getType().equals("Long"))
+                ((Series<Long>) col).addItem(Long.parseLong((String) obj));
+            else if (col.getType().equals("Boolean"))
+                ((Series<Boolean>) col).addItem(Boolean.parseBoolean((String) obj));
+            else if (col.getType().equals("Character"))
+                ((Series<Character>) col).addItem(((String) obj).charAt(0));
+            else if (col.getType().equals("String"))
+                ((Series<String>) col).addItem((String) obj);
+            else 
+                System.out.println("Item: " + obj + " has no data type.");
         }
-
-        if (col.getType().equals("LocalDate"))
-            ((Series<LocalDate>) col).addItem(LocalDate.parse((String) obj));
-        else if (col.getType().equals("Float"))
-            ((Series<Float>) col).addItem(Float.parseFloat((String) obj));
-        else if (col.getType().equals("Double"))
-            ((Series<Double>) col).addItem(Double.parseDouble((String) obj));
-        else if (col.getType().equals("Short"))
-            ((Series<Short>) col).addItem(Short.parseShort((String) obj));
-        else if (col.getType().equals("Integer"))
-            ((Series<Integer>) col).addItem(Integer.parseInt((String) obj));
-        else if (col.getType().equals("Long"))
-            ((Series<Long>) col).addItem(Long.parseLong((String) obj));
-        else if (col.getType().equals("Boolean"))
-            ((Series<Boolean>) col).addItem(Boolean.parseBoolean((String) obj));
-        else if (col.getType().equals("Character"))
-            ((Series<Character>) col).addItem(((String) obj).charAt(0));
-        else if (col.getType().equals("String"))
-            ((Series<String>) col).addItem((String) obj);
-        else 
-            System.out.println("Item: " + obj + " has no data type.");
     }
 
 // ===================================================================================================================================
