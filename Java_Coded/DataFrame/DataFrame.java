@@ -45,14 +45,20 @@ public class DataFrame {
     public static void main(String [] args){
         // DataFrame df = new DataFrame("C:/Users/Waks/Downloads/USEP BSCS/Coding/Machine Learning/Datasets/advertising.csv");
         // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\USEP BSCS\\Coding\\Machine Learning\\Datasets\\Iris.csv");
-        DataFrame df = new DataFrame("D:\\Waks - Academics\\Side Projects\\Machine-Learning-in-Java\\Datasets\\Iris.csv");
+        
+        // A class that handles the location of the datasets
+        DatasetHandler handler = new DatasetHandler();
+        DataFrame df = new DataFrame(handler.getRootDirectory() + "\\Linear_Regression\\Iris.csv");
+        // DataFrame df = new DataFrame("C:\\Users\\Waks\\Downloads\\Coding\\Side Projects\\Machine-Learning-in-Java\\Datasets\\Linear_Regression\\Iris.csv");
+
+        // Testing the methods for the DataFrame
         System.out.println(df.getInfo());
-        System.out.println(df);
+        // System.out.println(df);
+        
         // System.out.println(df.getHead());
-        // System.out.println(df.select("Id", "SepalLengthCm", "PetalLengthCm", "Species")
-        //                         .getHead());
+        // System.out.println(df.select("Id", "SepalLengthCm", "PetalLengthCm", "Species").getHead());
         // System.out.println(df.loc("Id", "SepalLengthCm").getHead());
-        System.out.println(df.iloc(0, 0, 3, 2).getHead());
+        // System.out.println(df.iloc(0, 0, 3, 2).getHead());
     }
 
     /**
